@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Interactivo: Cultura Digital 1 - Etapa 3 (Modificado)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            /* Fondo animado oscuro tecnológico */
+            background: linear-gradient(-45deg, #020617, #1e1b4b, #0f172a, #312e81);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Efecto Cristal Avanzado */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        /* Animaciones */
+        .slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
+        .bounce-in { animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Estilos de Botones de Opción */
+        .option-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.01);
+            background: rgba(79, 70, 229, 0.15); /* Indigo hover */
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 10px 20px -5px rgba(79, 70, 229, 0.3);
+        }
+        
+        /* Estados de respuesta con gradientes vibrantes */
+        .correct-answer {
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%) !important;
+            border-color: #10b981 !important;
+            color: white;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+            transform: scale(1.02);
+        }
+        .wrong-answer {
+            background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%) !important;
+            border-color: #ef4444 !important;
+            color: rgba(255,255,255,0.9);
+            opacity: 0.7;
+        }
+
+        /* Orbes decorativos de fondo */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 10s infinite alternate ease-in-out;
+        }
+        .orb-1 { top: -10%; left: -10%; width: 400px; height: 400px; background: #4f46e5; }
+        .orb-2 { bottom: -10%; right: -10%; width: 350px; height: 350px; background: #c026d3; animation-delay: -5s; }
+
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(30px, 50px); }
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: #6366f1; border-radius: 4px; }
+    </style>
+</head>
+
+<body class="flex items-center justify-center p-4 md:p-8 relative overflow-x-hidden">
+
+    <!-- Orbes de fondo -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <main id="app" class="glass-panel w-full max-w-4xl rounded-3xl overflow-hidden relative min-h-[600px] flex flex-col shadow-2xl">
+        
+        <!-- PANTALLA 1: BIENVENIDA -->
+        <section id="screen-welcome" class="flex flex-col items-center justify-center text-center p-8 md:p-16 flex-grow slide-up z-10">
+            <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-fuchsia-500 rounded-2xl flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(99,102,241,0.5)] transform rotate-12 hover:rotate-0 transition-transform duration-500">
+                <i class="fa-solid fa-microchip text-5xl text-white"></i>
+            </div>
+            
+            <span class="px-4 py-1.5 rounded-full bg-white/10 text-indigo-300 text-sm font-bold tracking-wider uppercase mb-6 border border-white/5">
+                Evaluación Diagnóstica
+            </span>
+            
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-fuchsia-400 leading-tight">
+                Cultura Digital 1
+            </h1>
+            <h2 class="text-xl md:text-2xl text-slate-300 mb-8 max-w-2xl font-light">
+                Etapa 3: Inteligencia Artificial, Ingeniería de Prompts y Ética Digital.
+            </h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-10 w-full max-w-md">
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5 flex flex-col items-center">
+                    <i class="fa-solid fa-list-check text-2xl text-indigo-400 mb-2"></i>
+                    <span class="text-slate-300 font-medium">20 Preguntas</span>
+                </div>
+                <div class="bg-black/20 p-4 rounded-2xl border border-white/5 flex flex-col items-center">
+                    <i class="fa-solid fa-bolt text-2xl text-fuchsia-400 mb-2"></i>
+                    <span class="text-slate-300 font-medium">Interactiva</span>
+                </div>
+            </div>
+
+            <button onclick="startApp()" class="group relative px-8 py-4 bg-white text-slate-900 font-bold rounded-full overflow-hidden shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform duration-300">
+                <span class="relative z-10 flex items-center text-lg">
+                    Comenzar Evaluación <i class="fa-solid fa-play ml-3 group-hover:translate-x-1 transition-transform"></i>
+                </span>
+                <div class="absolute inset-0 h-full w-full bg-gradient-to-r from-indigo-200 to-fuchsia-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </button>
+        </section>
+
+        <!-- PANTALLA 2: CUESTIONARIO -->
+        <section id="screen-quiz" class="hidden flex-col h-full flex-grow z-10">
+            <!-- Header -->
+            <header class="p-6 md:px-10 border-b border-white/10 flex justify-between items-center bg-black/20 backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-full bg-indigo-500/20 flex items-center justify-center border border-indigo-500/30 shadow-inner">
+                        <span id="counter" class="text-indigo-300 font-bold text-xl">1</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-xs text-slate-400 uppercase tracking-wider">Pregunta</span>
+                        <span class="text-sm font-medium text-slate-200">de 20</span>
+                    </div>
+                </div>
+                
+                <div class="bg-black/30 px-5 py-2 rounded-xl border border-white/5 flex items-center gap-3">
+                    <i class="fa-solid fa-star text-yellow-400"></i>
+                    <span class="text-xs text-slate-400 uppercase tracking-wider">Puntos</span>
+                    <span id="score" class="text-xl font-bold text-white">0</span>
+                </div>
+            </header>
+
+            <!-- Barra de Progreso -->
+            <div class="w-full bg-black/40 h-2">
+                <div id="progress" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-fuchsia-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] transition-all duration-500 ease-out" style="width: 0%;"></div>
+            </div>
+
+            <!-- Contenido -->
+            <div class="p-6 md:p-10 flex-grow flex flex-col justify-center relative overflow-y-auto">
+                <div id="quiz-content" class="w-full max-w-3xl mx-auto">
+                    <h2 id="question-text" class="text-2xl md:text-3xl font-semibold mb-8 text-white leading-snug drop-shadow-lg">
+                        <!-- Pregunta dinámica -->
+                    </h2>
+                    
+                    <div id="options-grid" class="flex flex-col gap-4">
+                        <!-- Opciones dinámicas -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer / Botón Siguiente -->
+            <footer class="p-6 md:px-10 border-t border-white/10 flex justify-end items-center bg-black/20 backdrop-blur-md min-h-[90px]">
+                <button id="btn-next" onclick="nextStep()" class="hidden px-8 py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-[0_10px_20px_-10px_rgba(99,102,241,0.6)] hover:-translate-y-1 transition-all duration-300">
+                    Siguiente <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </footer>
+        </section>
+
+        <!-- PANTALLA 3: RESULTADOS -->
+        <section id="screen-results" class="hidden flex-col items-center justify-center p-8 md:p-16 text-center h-full flex-grow z-10">
+            
+            <div class="relative w-48 h-48 mb-8 bounce-in">
+                <!-- SVG Círculo animado -->
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                    <path class="text-white/10" stroke-dasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="currentColor" stroke-width="2.5" fill="none" />
+                    <path id="circle-progress" class="text-fuchsia-500 transition-all duration-1500 ease-out" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="final-pct" class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-white to-slate-400">0%</span>
+                </div>
+            </div>
+
+            <h2 id="final-title" class="text-3xl md:text-4xl font-bold mb-3">¡Evaluación Terminada!</h2>
+            <p id="final-msg" class="text-lg text-slate-300 mb-10 max-w-xl mx-auto leading-relaxed">
+                Calculando resultados...
+            </p>
+            
+            <div class="flex gap-6 mb-10">
+                <div class="bg-black/30 px-8 py-4 rounded-2xl border border-white/10 text-center">
+                    <p class="text-sm text-slate-400 uppercase tracking-widest mb-1">Aciertos</p>
+                    <p class="text-3xl font-bold"><span id="final-points" class="text-indigo-400">0</span><span class="text-slate-500 text-xl">/20</span></p>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold rounded-full transition-all duration-300 hover:scale-105 flex items-center">
+                <i class="fa-solid fa-rotate-left mr-3"></i> Volver al Inicio
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        // Base de datos estricta: Versión Modificada (Fuente 3)
+        const questions = [
+            {
+                q: "¿Cómo se define a la Inteligencia Artificial (IA)?",
+                opts: [
+                    "Una rama de las ciencias de la computación que desarrolla sistemas para realizar tareas que requieren inteligencia humana.",
+                    "Un programa tradicional que sigue instrucciones matemáticas fijas.",
+                    "Un hardware diseñado exclusivamente para videojuegos interactivos.",
+                    "Una plataforma de almacenamiento de archivos en la nube."
+                ],
+                ans: 0
+            },
+            {
+                q: "¿En qué sector se emplea la IA para detectar transacciones inusuales, automatizar procesos bancarios y analizar riesgos?",
+                opts: [
+                    "Educación.",
+                    "Seguridad.",
+                    "Salud.",
+                    "Finanzas."
+                ],
+                ans: 3
+            },
+            {
+                q: "De acuerdo con las categorías de IA, ¿cuál es la que está diseñada para realizar tareas concretas dentro de un ámbito específico?",
+                opts: [
+                    "Inteligencia Artificial General.",
+                    "Inteligencia Artificial Débil o estrecha.",
+                    "Superinteligencia Artificial.",
+                    "Aprendizaje profundo."
+                ],
+                ans: 1
+            },
+            {
+                q: "¿Cuáles son las dos áreas fundamentales que han impulsado el desarrollo reciente de la IA permitiendo a los sistemas aprender a partir de datos?",
+                opts: [
+                    "Machine Learning y Deep Learning.",
+                    "Robótica y Automatización tradicional.",
+                    "Realidad Virtual y Realidad Aumentada.",
+                    "Procesamiento de texto y Sistemas operativos."
+                ],
+                ans: 0
+            },
+            {
+                q: "¿Qué tipo de IA incluye herramientas como ChatGPT, Gemini y Claude, que son capaces de crear texto, imágenes o videos nuevos a partir de patrones aprendidos?",
+                opts: [
+                    "IA Analítica.",
+                    "IA General.",
+                    "IA Generativa.",
+                    "IA Estrecha tradicional."
+                ],
+                ans: 2
+            },
+            {
+                q: "¿Qué función principal cumplen los sistemas de recomendación con IA en plataformas como YouTube, TikTok o Spotify?",
+                opts: [
+                    "Bloquear contenido inapropiado automáticamente.",
+                    "Ofrecer personalización algorítmica adaptando el contenido mostrado a cada persona.",
+                    "Eliminar cuentas de usuarios inactivos.",
+                    "Aumentar la velocidad de conexión a internet."
+                ],
+                ans: 1
+            },
+            {
+                q: "En el desarrollo de un prompt efectivo, ¿cuáles son los cuatro elementos clave que se deben especificar para obtener un resultado útil?",
+                opts: [
+                    "Entrada, Proceso, Clasificación, Salida.",
+                    "Introducción, Desarrollo, Conclusión, Referencias.",
+                    "Red neuronal, Algoritmo, Sesgo, Validación.",
+                    "Rol, Contexto, Tarea, Formato."
+                ],
+                ans: 3
+            },
+            {
+                q: "Dentro de la estructura de un prompt, ¿cuál es el elemento que indica el grado de profundidad requerido en la respuesta (por ejemplo: 'Actúa como un profesor')?",
+                opts: [
+                    "Formato.",
+                    "Rol.",
+                    "Contexto.",
+                    "Tarea."
+                ],
+                ans: 1
+            },
+            {
+                q: "¿Qué tipo de prompts tienen como propósito solicitar explicaciones, definiciones o descripciones sobre un tema específico?",
+                opts: [
+                    "Prompts de generación de contenido.",
+                    "Prompts de resolución de problemas.",
+                    "Prompts informativos.",
+                    "Prompts de análisis."
+                ],
+                ans: 2
+            },
+            {
+                q: "¿En qué consiste la técnica de 'triangulación de fuentes' al interactuar con inteligencia artificial?",
+                opts: [
+                    "En generar tres versiones diferentes de un mismo texto utilizando ChatGPT.",
+                    "En identificar coincidencias y detectar posibles errores contrastando la información con fuentes confiables.",
+                    "En agrupar datos con características similares en tres categorías distintas.",
+                    "En redactar un prompt que tenga tres instrucciones simultáneas."
+                ],
+                ans: 1
+            },
+            {
+                q: "¿Qué concepto se refiere al proceso de diseñar instrucciones claras y evaluar críticamente las respuestas de la IA analizando sus resultados?",
+                opts: [
+                    "Ingeniería de Prompts Crítica.",
+                    "Machine Learning Supervisado.",
+                    "Deep Learning.",
+                    "Personalización algorítmica."
+                ],
+                ans: 0
+            },
+            {
+                q: "Para evitar prácticas de deshonestidad académica en la entrega de textos generados por IA, ¿qué enfoque es indispensable promover en los estudiantes?",
+                opts: [
+                    "El aprendizaje por refuerzo.",
+                    "La automatización total de tareas.",
+                    "La supervisión humana (human-in-the-loop).",
+                    "El sesgo algorítmico."
+                ],
+                ans: 2
+            },
+            {
+                q: "¿Qué impacto ambiental generan los grandes centros de datos requeridos para el entrenamiento continuo de los modelos de lenguaje de IA?",
+                opts: [
+                    "Reducción en el consumo de agua.",
+                    "Consumo significativo de energía eléctrica y emisiones de gases de efecto invernadero.",
+                    "Generación excesiva de basura electrónica.",
+                    "Alteración de ecosistemas marítimos."
+                ],
+                ans: 1
+            },
+            {
+                q: "¿Qué formato de citación es requerido para referenciar los recursos generados por Inteligencia Artificial en el reporte de la evidencia de aprendizaje?",
+                opts: [
+                    "Estilo APA.",
+                    "Estilo Chicago.",
+                    "Estilo Harvard.",
+                    "Estilo Vancouver."
+                ],
+                ans: 0
+            },
+            {
+                q: "¿Qué caso de estudio regional demuestra la implementación de centros de cómputo de alto rendimiento y el desarrollo de un 'Hub de Inteligencia Artificial' en México?",
+                opts: [
+                    "Jalisco.",
+                    "Nuevo León.",
+                    "Ciudad de México.",
+                    "Yucatán."
+                ],
+                ans: 1
+            },
+            {
+                q: "¿Qué tipo de prompt solicita a la IA examinar información, identificar patrones y emitir conclusiones basadas en datos proporcionados por el usuario?",
+                opts: [
+                    "Prompts informativos.",
+                    "Prompts de generación de contenido.",
+                    "Prompts de resolución de problemas.",
+                    "Prompts de análisis."
+                ],
+                ans: 3
+            },
+            {
+                q: "¿Cómo se le denomina al sistema hipotético, aún en especulación, que superaría las capacidades del pensamiento humano en todos los aspectos?",
+                opts: [
+                    "Inteligencia Artificial Débil.",
+                    "Inteligencia Artificial General.",
+                    "Superinteligencia Artificial.",
+                    "Redes neuronales artificiales."
+                ],
+                ans: 2
+            },
+            {
+                q: "¿Qué tecnología impulsada por IA permite identificar la identidad de una persona a partir de imágenes o videos, pero ha generado debates éticos sobre la privacidad?",
+                opts: [
+                    "Reconocimiento facial.",
+                    "Asistente virtual por voz.",
+                    "Deepfakes.",
+                    "Chatbots generativos."
+                ],
+                ans: 0
+            },
+            {
+                q: "Dentro de la dimensión ética de la IA, ¿qué principio establece que las decisiones automatizadas no deben favorecer injustamente a determinados grupos de personas?",
+                opts: [
+                    "Transparencia.",
+                    "Justicia y no discriminación.",
+                    "Privacidad y protección de datos.",
+                    "Beneficio social."
+                ],
+                ans: 1
+            },
+            {
+                q: "¿Qué riesgo surge cuando un algoritmo asimila y reproduce criterios injustos debidos a los datos utilizados durante su etapa de entrenamiento?",
+                opts: [
+                    "Deep Learning.",
+                    "Triangulación de fuentes.",
+                    "Análisis predictivo.",
+                    "Sesgo algorítmico."
+                ],
+                ans: 3
+            }
+        ];
+
+        let currIdx = 0;
+        let userPoints = 0;
+        let isLocked = false;
+        const totalQ = questions.length;
+        const letters = ['A', 'B', 'C', 'D'];
+
+        // DOM Elements
+        const secWelcome = document.getElementById('screen-welcome');
+        const secQuiz = document.getElementById('screen-quiz');
+        const secResults = document.getElementById('screen-results');
+        const uiCounter = document.getElementById('counter');
+        const uiScore = document.getElementById('score');
+        const uiProgress = document.getElementById('progress');
+        const uiQuestion = document.getElementById('question-text');
+        const uiOptions = document.getElementById('options-grid');
+        const uiBtnNext = document.getElementById('btn-next');
+        const quizContainer = document.getElementById('quiz-content');
+
+        function startApp() {
+            secWelcome.classList.replace('flex', 'hidden');
+            secQuiz.classList.replace('hidden', 'flex');
+            
+            currIdx = 0;
+            userPoints = 0;
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            isLocked = false;
+            uiBtnNext.classList.add('hidden');
+            
+            // Animación
+            quizContainer.classList.remove('fade-in');
+            void quizContainer.offsetWidth; // force reflow
+            quizContainer.classList.add('fade-in');
+
+            const qData = questions[currIdx];
+            
+            // UI Updates
+            uiCounter.innerText = currIdx + 1;
+            uiScore.innerText = userPoints;
+            
+            // Barra de progreso (min 2% para que se vea)
+            const pct = Math.max(2, (currIdx / totalQ) * 100);
+            uiProgress.style.width = `${pct}%`;
+
+            // Textos
+            uiQuestion.innerText = qData.q;
+            uiOptions.innerHTML = '';
+
+            // Renderizar botones
+            qData.opts.forEach((optText, i) => {
+                const btn = document.createElement('button');
+                btn.className = `option-btn w-full text-left p-4 md:p-5 rounded-2xl bg-black/20 backdrop-blur-sm border border-white/10 flex items-center gap-4 group`;
+                
+                btn.innerHTML = `
+                    <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 text-slate-300 font-bold group-hover:bg-indigo-500/20 group-hover:text-indigo-300 transition-colors">
+                        ${letters[i]}
+                    </div>
+                    <div class="flex-grow text-slate-200 md:text-lg leading-snug pr-4">
+                        ${optText}
+                    </div>
+                    <div class="status-icon w-8 flex justify-end opacity-0 transition-opacity"></div>
+                `;
+                
+                btn.onclick = () => handleSelection(i, btn);
+                uiOptions.appendChild(btn);
+            });
+        }
+
+        function handleSelection(selectedIndex, clickedBtn) {
+            if (isLocked) return;
+            isLocked = true;
+            
+            const qData = questions[currIdx];
+            const allBtns = uiOptions.querySelectorAll('button');
+            const isRight = (selectedIndex === qData.ans);
+
+            // Bloquear botones
+            allBtns.forEach((btn, idx) => {
+                btn.disabled = true;
+                btn.classList.remove('hover:-translate-y-1', 'group');
+                
+                const iconContainer = btn.querySelector('.status-icon');
+                
+                if (idx === qData.ans) {
+                    // Es la correcta, resaltar siempre en verde
+                    btn.classList.add('correct-answer');
+                    iconContainer.innerHTML = '<i class="fa-solid fa-check-circle text-2xl drop-shadow-md"></i>';
+                    iconContainer.classList.remove('opacity-0');
+                } else if (idx === selectedIndex && !isRight) {
+                    // Es incorrecta y fue la que seleccionó el usuario
+                    btn.classList.add('wrong-answer');
+                    iconContainer.innerHTML = '<i class="fa-solid fa-times-circle text-2xl drop-shadow-md"></i>';
+                    iconContainer.classList.remove('opacity-0');
+                } else {
+                    // Las demás se oscurecen
+                    btn.style.opacity = '0.4';
+                }
+            });
+
+            if (isRight) {
+                userPoints++;
+                uiScore.innerText = userPoints;
+            }
+
+            // Mostrar botón siguiente
+            uiBtnNext.classList.remove('hidden');
+            uiBtnNext.classList.add('fade-in');
+        }
+
+        function nextStep() {
+            currIdx++;
+            if (currIdx < totalQ) {
+                renderQuestion();
+            } else {
+                finishApp();
+            }
+        }
+
+        function finishApp() {
+            secQuiz.classList.replace('flex', 'hidden');
+            secResults.classList.replace('hidden', 'flex');
+            
+            const finalPercent = Math.round((userPoints / totalQ) * 100);
+            
+            // Actualizar textos
+            document.getElementById('final-points').innerText = userPoints;
+            
+            // Animar el círculo
+            setTimeout(() => {
+                const circle = document.getElementById('circle-progress');
+                circle.setAttribute('stroke-dasharray', `${finalPercent}, 100`);
+                
+                // Animar contador numérico
+                let c = 0;
+                let step = finalPercent > 0 ? Math.ceil(finalPercent / 30) : 1;
+                const timer = setInterval(() => {
+                    c += step;
+                    if (c >= finalPercent) {
+                        c = finalPercent;
+                        clearInterval(timer);
+                    }
+                    document.getElementById('final-pct').innerText = `${c}%`;
+                }, 40);
+            }, 300);
+
+            // Feedback dinámico
+            const uiTitle = document.getElementById('final-title');
+            const uiMsg = document.getElementById('final-msg');
+            const svgCircle = document.getElementById('circle-progress');
+
+            if (finalPercent >= 90) {
+                uiTitle.innerText = "¡Nivel Experto!";
+                uiTitle.className = "text-3xl md:text-4xl font-bold mb-3 text-emerald-400";
+                svgCircle.classList.replace('text-fuchsia-500', 'text-emerald-500');
+                uiMsg.innerText = "Dominas a la perfección la ingeniería de prompts, los conceptos de IA y la ética digital.";
+            } else if (finalPercent >= 70) {
+                uiTitle.innerText = "¡Aprobado con Éxito!";
+                uiTitle.className = "text-3xl md:text-4xl font-bold mb-3 text-indigo-400";
+                svgCircle.classList.replace('text-fuchsia-500', 'text-indigo-500');
+                uiMsg.innerText = "Tienes una excelente comprensión, pero un pequeño repaso en citación o estructuras de prompts te hará invencible.";
+            } else {
+                uiTitle.innerText = "Área de Oportunidad";
+                uiTitle.className = "text-3xl md:text-4xl font-bold mb-3 text-rose-400";
+                svgCircle.classList.replace('text-fuchsia-500', 'text-rose-500');
+                uiMsg.innerText = "Es recomendable volver a repasar la Etapa 3, especialmente los riesgos éticos y la estructura de los prompts.";
+            }
+        }
+    </script>
+</body>
+</html>
